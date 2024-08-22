@@ -1,0 +1,86 @@
+# CREATE TMP TABLE
+
+data work.test_anon;
+	set casuser.test_anonymization;
+run;
+
+
+# RUN PRX - Step 1
+
+/*Use PRXCHANGE function to anonymize Text. Personal data is replaced with XXXXX. 
+Other steps use YYYYY, ZZZZZ etc. so that it can be traced which step was responsible for anonymization */
+/* Information for Perl regex metacharacter used in prxchange for sas: 
+https://go.documentation.sas.com/?docsetId=lefunctionsref&docsetTarget=p0s9ilagexmjl8n1u7e1t1jfnzlk.htm&docsetVersion=9.4&locale=en
+*/
+/*Use PRXMATCH if you need to just find the entity location in the string*/
+
+data work.anon_step1;
+	set test_anon; /*REPLACE inputdata and caslib*/
+
+/* Social security numbers and phone numbers */
+	Text = prxchange('s/\d\d\d\d+/NNNNN/', -1, Text);
+	Text = prxchange('s/\d\d\d+\ \d\d+ \d\d\d+?/NNNNN/', -1, Text);
+	Text = prxchange('s/\d\d\d+\ \d\d\d+ \d\d+/NNNNN/', -1, Text);
+	Text = prxchange('s/\d\d\d+\d\d\d\d\d\d\d\d\+/NNNNN/', -1, Text);
+	Text = prxchange('s/\d\d\d-/NNNNN/', -1, Text);
+	Text = prxchange('s/\d\d\d+\D/NNNNN/', -1, Text);
+	Text = prxchange('s/\([2-9]\d\d\)/NNNNN/', -1, Text);
+	Text = prxchange('s/\d\d\d\d\d\d?[2-9]\d\d+\w/NNNNN/', -1, Text);
+	Text = prxchange('s/\d\d\d\d\d\d-?[2-9]\d\d+\w/NNNNN/', -1, Text);
+	Text = prxchange('s/(-)\d\d\d\w?/NNNNN/', -1, Text);
+	Text = prxchange('s/\ ?\d\d\d\w?/NNNNN/', -1, Text);
+
+/* Names starting with capitals. First, Middle, Lastname needs to come first. */
+	Text = prxchange('s/[A-Z][a-ö]+\s[A-Z][a-ö]+\s[A-Z][a-z]+/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Z][a-ö]+\s[A-Z][a-ö]+/TTTTT/', -1, Text);
+	Text = prxchange('s/[Å,Ä,Ö][a-ö]+\s[A-Z][a-ö]+\s[A-Z][a-ö]+/TTTTT/', -1, Text);
+	Text = prxchange('s/[Å,Ä,Ö][a-ö]+\s[A-Z][a-ö]+/TTTTT/', -1, Text);
+
+/* Birthdates */
+	Text = prxchange('s/\d+\S\d+\S/NNNNN/', -1, Text);
+
+/* Addresses. Most common addresses. 
+First uncapitalized street names are checked in combination with number and letter patterns. 
+Second step checks capitalized street names without requirement for number and letter patterns */
+	*Text = prxchange('s/[a-ö]+(tie)\s\d+\s\C\C\C/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Öa-ö]+(tie)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Öa-ö]?(tie)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	*Text = prxchange('s/[a-ö]+(katu)\s\d+\s\C\C\C/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Öa-ö]+(katu)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Öa-ö]?(katu)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	*Text = prxchange('s/[a-ö]+(polku)\s\d+\s\C\C\C/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Öa-ö]+(polku)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Öa-ö]?(polku)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	*Text = prxchange('s/[a-ö]+(mäki)\s\d+\s\C\C\C/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Öa-ö]+(mäki)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Öa-ö]?(mäki)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	*Text = prxchange('s/[a-ö]+(kuja)\s\d+\s\C\C\C/TTTTT/', -1, Text);
+	Text = prxchange('s/[a-ö]?(kuja)\s\d+\s\w\s\d+/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Z][a-ö]+(tie)/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Z][a-ö]+(katu)/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Z][a-ö]+(polku)/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Z][a-ö]+(mäki)/TTTTT/', -1, Text);
+	Text = prxchange('s/[A-Z][a-ö]+(kuja)/TTTTT/', -1, Text);
+	Text = prxchange('s/[Å,Ä,Ö][a-ö]+(tie)/TTTTT/', -1, Text);
+	Text = prxchange('s/[Å,Ä,Ö][a-ö]+(katu)/TTTTT/', -1, Text);
+	Text = prxchange('s/[Å,Ä,Ö][a-ö]+(polku)/TTTTT/', -1, Text);
+	Text = prxchange('s/[Å,Ä,Ö][a-ö]+(mäki)/TTTTT/', -1, Text);
+	Text = prxchange('s/[Å,Ä,Ö][a-ö]+(kuja)/TTTTT/', -1, Text);
+
+/* Email addresses */
+	Text = prxchange('s/\b\S*@\S*\b/TTTTT/',-1,Text);
+run;
+
+
+
+# RUN PRX - STEP 2
+
+/* Names can be provided as a list. More robust implementation should be done for production application using a data table and function that loops through the name tables.
+PRX statement needs 3x "\C" to recognize names starting with Ä, Ö, Å as they consits of three bytes.*/
+%let vals1 = Esko|Esimerkki|Asko|Arvola|Juhani|Numminen|Teppo|Olavi|Zahier|Vin;
+data WORK.anon_step2;
+	set anon_step1;
+	regex = prxparse("s/\b(&vals1.)/ TLIST/");
+	call prxchange(regex,-1,Text);
+	drop regex;
+run;
