@@ -1,0 +1,76 @@
+# CREATE CONCEPT RULE TBL
+
+/*https://go.documentation.sas.com/doc/en/pgmsascdc/v_045/casvtapg/p1h7vwp9se8356n121j8iar2r2pl.htm
+https://go.documentation.sas.com/doc/en/ctxtcdc/v_017/ctxtug/p1kf71w7npr9ecn1gysvovfs42x2.htm
+https://communities.sas.com/t5/SAS-Communities-Library/Extracting-Information-from-Text-Documents-in-Business-Contexts/ta-p/578740
+*/
+
+data casuser.concept_rules;                      /*3*/
+length config varchar(*); 
+infile datalines delimiter='|' missover; 
+input config$;
+ruleid=monotonic();
+datalines;
+REGEX:hetut: [0-9]+\-[0-9]+[A-Z]*
+REGEX:kadut: [A-Za-z]+tie+[ \t\n\r\f]
+CONCEPT_RULE:erisnimet_context: (SENT, "nimi@", "_c{:PN}")
+CONCEPT:erisnimet: :PN :PN
+;
+run;
+
+
+
+#COMPLITE CONCEPT RULE TBL
+
+/*Compline and export the concept model using the in-memory table*/
+
+proc cas;                                
+   
+   builtins.loadActionSet /                     
+      actionSet="textRuleDevelop";
+
+   textRuleDevelop.compileConcept /                 /*3*/
+      casOut={name="outli", replace=TRUE}
+      ruleid="ruleid"
+      config="config"
+      enablePredefined=FALSE 
+      language="FINNISH"
+      table={name="concept_rules"};
+   run;
+
+   textRuleDevelop.exportTextModel /                /*4*/
+      build={modelType="CONCEPT"}
+      casOut={name="astore_concept", replace=TRUE} 
+      language="FINNISH"
+      table={name="outli"};
+   run;
+
+
+
+# INFERENCE
+
+/*Rename text field into _text_*/
+
+/*Use data in caslib*/
+data casuser.score_input;
+	set &_input1;
+run;
+
+/*Score new data using the concept model*/
+proc cas;
+
+   aStore.score /                                   /*1*/
+      copyVars={"ID"}
+      multiplecasout={
+         {name="concept_out", replace=true},
+         {name="fact_out", replace=true}
+                     }
+      rstore={name="astore_concept"}
+      table={name="score_input"};
+   run;
+
+   table.fetch /                                    /*2*/
+      table={name="concept_out"};   
+   run;
+
+quit;
