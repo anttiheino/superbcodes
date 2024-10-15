@@ -1,1 +1,3 @@
 Image Processing examples
+
+1. Load images, flatten and compare example shows how to load images to SAS Viya, flatten them to get RGB values of the images and then uses compare images action to calculate differences / similarity between images.
