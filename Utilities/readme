@@ -1,1 +1,4 @@
 Utility code snippets
+
+1. Macro variable processing -> example of how to use macro functions.
+2. runModelLocal -> how to use runModelLocal action from model publishing action set to score input data using a model published to CAS publishing destination.
