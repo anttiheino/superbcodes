@@ -1,0 +1,8 @@
+This folder contains customs steps.
+
+Customs steps can be used in SAS Studio Flows. They provide mini-UIs for any SAS / Python code and can be used like any other officially supported node in a analysis flow. 
+
+The steps are
+1. runModelLocal -> score input data with a model published to CAS publishing destination.
+2. Copy data -> copy data between libraries
+3. Sample data -> simple example on how to use python inside a custom step
