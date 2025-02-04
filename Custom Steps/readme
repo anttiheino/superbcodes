@@ -1,4 +1,4 @@
-This folder contains customs steps.
+This folder contains customs steps. You can find a video tutorial on how to use them on my channel: https://youtu.be/dnQXLKEp5g4
 
 Customs steps can be used in SAS Studio Flows. They provide mini-UIs for any SAS / Python code and can be used like any other officially supported node in a analysis flow. 
 
