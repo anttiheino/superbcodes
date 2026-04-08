@@ -1,0 +1,17 @@
+/*SAS DATA Step*/
+
+DATA tableWithUniqueID;
+SET tableWithOutUniqueID; 
+
+        uniqueID = _n_;
+
+run;
+
+/*CAS DATA Step*/
+
+DATA tableWithUniqueID;
+SET tableWithOutUniqueID;
+
+        uniqueID = put(_threadid_,8.) || '_' || Put(_n_,8.);
+
+run;
